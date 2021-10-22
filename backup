@@ -3,7 +3,6 @@ from scrapy import Request
 from scrapy.crawler import CrawlerProcess
 from File import *
 import json
-import re
 
 data = {}
 class WebCrawler(scrapy.Spider):
@@ -36,12 +35,10 @@ class WebCrawler(scrapy.Spider):
 
         for i in page_elements:
             if(i.strip() != ""):
-                aux_map = i.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
-                                      'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
-                line = re.sub("(\s+)"," ",i.strip())
-                line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ ]","",line)
+                # aux_map = i.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
+                #                       'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
                 text_lines.append(i.strip().split(" "))
-                text_lines_no_stop_word.append([x for x in line.strip().split(" ") if x.lower().translate(aux_map) not in stop_words])
+                text_lines_no_stop_word.append([x for x in i.strip().split(" ") if x not in stop_words])
         
         for i in range(len(text_lines_no_stop_word)):
             for j in text_lines_no_stop_word[i]:
