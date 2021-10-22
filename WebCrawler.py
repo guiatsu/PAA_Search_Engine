@@ -22,7 +22,7 @@ class WebCrawler(scrapy.Spider):
         links = response.css("a")
         teste = response.css("a::attr(href)").getall()
         self.parse_page(response)
-        # yield from response.follow_all(links, self.parse_page)
+        yield from response.follow_all(links, self.parse_page)
 
     def parse_page(self,response):
         page = response.url.split("/")[-1]
@@ -38,38 +38,40 @@ class WebCrawler(scrapy.Spider):
             line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ ]","",i.strip())
             line = re.sub("\t"," ",line)
             line = re.sub("\s{2,}","",line)
+            line = line.strip()
             if(line != ""):
                 aux_map = line.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
                                          'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
                 text_lines.append(line.split(" "))
-                text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words])
+                # text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words and len(x) > 1])
+                # text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words and len(x) > 1])
+                text_lines_no_stop_word.append(line.split(" "))
         
         for i in range(len(text_lines_no_stop_word)):
             for j in text_lines_no_stop_word[i]:
+                j = j.lower()
                 if data.get(j) == None:
                     data[j] = {
                         "pages" : {
                             response.url : {
-                                "ocurrences" : 1,
-                                "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word == j])],
+                                "occurrences" : 1,
+                                "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                             },
                         },
                     }
                 else:
                     if data[j]["pages"].get(response.url) == None:
                         data[j]["pages"][response.url] = {
-                            "ocurrences": 1,
-                            "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word == j])],
+                            "occurrences": 1,
+                            "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                         }
                     else:
                         aux = data[j]["pages"][response.url]
-                        aux["ocurrences"] = aux["ocurrences"] + 1
+                        aux["occurrences"] = aux["occurrences"] + 1
                         extracts = aux["extracts"]
-                        extracts.append((" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word == j]))
+                        extracts.append((" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j]))
                         aux["extracts"] = extracts
                         data[j]["pages"][response.url] = aux
-                if(j == ""):
-                    print(i,text_lines[i],text_lines_no_stop_word[i])
         # filename = f'pagename-{page}.html'
         # with open(filename, 'wb') as f:
         #     f.write(response.body)
