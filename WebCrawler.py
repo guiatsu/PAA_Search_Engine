@@ -35,13 +35,14 @@ class WebCrawler(scrapy.Spider):
         stop_words = set(get_stop_words())
 
         for i in page_elements:
-            if(i.strip() != ""):
-                aux_map = i.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
-                                      'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
-                line = re.sub("(\s+)"," ",i.strip())
-                line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ ]","",line)
-                text_lines.append(i.strip().split(" "))
-                text_lines_no_stop_word.append([x for x in line.strip().split(" ") if x.lower().translate(aux_map) not in stop_words])
+            line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ ]","",i.strip())
+            line = re.sub("\t"," ",line)
+            line = re.sub("\s{2,}","",line)
+            if(line != ""):
+                aux_map = line.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
+                                         'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
+                text_lines.append(line.split(" "))
+                text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words])
         
         for i in range(len(text_lines_no_stop_word)):
             for j in text_lines_no_stop_word[i]:
@@ -67,6 +68,8 @@ class WebCrawler(scrapy.Spider):
                         extracts.append((" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word == j]))
                         aux["extracts"] = extracts
                         data[j]["pages"][response.url] = aux
+                if(j == ""):
+                    print(i,text_lines[i],text_lines_no_stop_word[i])
         # filename = f'pagename-{page}.html'
         # with open(filename, 'wb') as f:
         #     f.write(response.body)
