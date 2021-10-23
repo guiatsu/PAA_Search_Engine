@@ -26,7 +26,7 @@ class WebCrawler(CrawlSpider):
         if page == "":
             page = response.url.split("/")[-2]
 
-        page_elements = response.css("body :not(script)::text, img::attr(alt)").getall()
+        page_elements = response.css("body :not(script):not(style)::text, img::attr(alt)").getall()
         text_lines = []
         text_lines_no_stop_word = []
         stop_words = set(get_stop_words())
@@ -34,7 +34,7 @@ class WebCrawler(CrawlSpider):
         for i in page_elements:
             line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ\s]","",i.strip())
             line = re.sub("\t"," ",line)
-            line = re.sub("\s{2,}"," ",line)
+            line = re.sub("\s+"," ",line)
             line = line.strip()
             if(line != ""):
                 text_lines.append(line.split(" "))
@@ -47,6 +47,7 @@ class WebCrawler(CrawlSpider):
                     data[j] = {
                         "pages" : {
                             response.url : {
+                                "title" : response.css("title::text").get(),
                                 "occurrences" : 1,
                                 "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                             },
@@ -55,6 +56,7 @@ class WebCrawler(CrawlSpider):
                 else:
                     if data[j]["pages"].get(response.url) == None:
                         data[j]["pages"][response.url] = {
+                            "title" : response.css("title::text").get(),
                             "occurrences": 1,
                             "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                         }
