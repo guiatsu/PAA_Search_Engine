@@ -75,21 +75,25 @@ class SearchEngine:
     def get_occurences(self,elem):
         return elem[1]["occurrences"]
 
-    def Process(self, term_list):
-        found_list = []
+    def Process(self, search_terms):
+        search_results = []
 
-        for i in range(len(term_list)):
-            if term_list[i] not in ["AND", "OR", "-"]:
-                found_list.append(set(self.search(term_list[i])))
+        for w in search_terms:
+            if w not in ["AND", "OR", "-"]:
+                #ocorrencias.append(self.data.get(w).get("pages").get(list(self.search(w))[0]))
+                if w.startswith("\""):
+                    search_results.append(set(self.String(w)))
+                else:
+                    search_results.append(set(self.search(w)))
             else:
-                if term_list[i] == "AND":
-                    found_list.append(self.And(found_list.pop(), found_list.pop()))
-                elif term_list[i] == "OR":
-                    found_list.append(self.Or(found_list.pop(), found_list.pop()))
-                elif term_list[i] == "-":
-                    found_list.append(self.Not(found_list.pop(), found_list.pop()))
+                if w == "AND":
+                    search_results.append(self.And(search_results.pop(), search_results.pop()))
+                elif w == "OR":
+                    search_results.append(self.Or(search_results.pop(), search_results.pop()))
+                elif w == "-":
+                    search_results.append(self.Not(search_results.pop(), search_results.pop()))
 
-        print(found_list)
+        print(search_results)
 
 if __name__ == "__main__":
     SE = SearchEngine()

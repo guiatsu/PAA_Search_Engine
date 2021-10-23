@@ -2,14 +2,30 @@ class Parser:
     def __init__(self):
         pass
 
+    # transforma operacao da forma infixa para posfixa
     def get_query_terms(self, query):
         tokens = query.split(" ")
 
         operators = []
         output = []
+        str_flag = False
+        str_list = ""
 
         for t in tokens:
-            if t == "(":
+            if str_flag and not t == "\"":
+                str_list += t + " "
+                continue
+                
+            if t == "\"":
+                if not str_flag:
+                    str_list = "\""
+                else:
+                    # conserta parenteses
+                    str_list = str_list.replace(" ( ", " (")
+                    str_list = str_list.replace(" ) ", ") ")
+                    output.append(str_list.strip().lower() + "\"")
+                str_flag = not str_flag
+            elif t == "(":
                 operators.append(t)
             elif t == ")":
                 while(len(operators) != 0 and operators[-1] != "("):
@@ -27,10 +43,13 @@ class Parser:
 
         return output
 
+    # separa palavras e faz transformacoes para uniformizar operadores
     def transform_query(self, query):
         # tudo minusculo
         query = query.lower()
 
+        # separa as aspas
+        query = query.replace("\"", " \" ")
         # separa o hifen
         query = query.replace(" -", " - ")
 
@@ -48,25 +67,34 @@ class Parser:
         # transforma espacos comuns em "AND"
         new_query = []
         itr = query.split(" ")
+        str_flag = False
         for k in range(len(itr)):
             new_query.append(itr[k])
 
-            if itr[k] not in ["AND", "OR", "-", "(", ")"]:
-                if k+1 < len(itr) and itr[k+1] not in ["AND", "OR", "-", "(", ")"]:
+            if itr[k] not in ["AND", "OR", "-", "(", "\""]:
+                if (not str_flag and k+1 < len(itr) 
+                    and itr[k+1] not in ["AND", "OR", "-", ")"]):
                     new_query.append("AND")
+            elif itr[k] == "\"":
+                if (str_flag and k+1 < len(itr) 
+                    and itr[k+1] not in ["AND", "OR", "-", ")"]):
+                    new_query.append("AND")
+                str_flag = not str_flag
             
 
         return " ".join(new_query)
 
 
+    def parse(self, query):
+        # remove acentos
+        aux_map = query.maketrans("¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ",
+                                  "SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy")
+        query = query.translate(aux_map)
+        query = self.transform_query(query)
+        return self.get_query_terms(query)
+
+
 if __name__ == "__main__":
-    #search_sentence(str(input()))
-    #print(get_query_terms("((abc or cde) and (bcd and def))"))
-    #print(get_query_terms("(abc or (cde and (ghi and def)))"))
-    #print(get_query_terms("(((ghi and def) and cde) or abc)"))
-    query = "universidade and de or brasilia and darcy -ribeiro"
-    #query = "unb -vestibular or (universidade de brasilia)"
+    query = "unb (\"universidade de brasilia\")"
     p = Parser()
-    query = p.transform_query(query)
-    print(query)
-    print(p.get_query_terms(query))
+    print(p.parse(query))
