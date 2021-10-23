@@ -1,5 +1,8 @@
 import json
+from os import terminal_size
 import re
+from Parser import Parser
+
 class SearchEngine:
     def __init__(self):
         file = open("Crawler.json","r")
@@ -72,6 +75,28 @@ class SearchEngine:
     def get_occurences(self,elem):
         return elem[1]["occurrences"]
 
+    def Process(self, term_list):
+        found_list = []
 
-SE = SearchEngine()
-print(SE.String("ir pará"))
+        for i in range(len(term_list)):
+            if term_list[i] not in ["AND", "OR", "-"]:
+                found_list.append(set(self.search(term_list[i])))
+            else:
+                if term_list[i] == "AND":
+                    found_list.append(self.And(found_list.pop(), found_list.pop()))
+                elif term_list[i] == "OR":
+                    found_list.append(self.Or(found_list.pop(), found_list.pop()))
+                elif term_list[i] == "-":
+                    found_list.append(self.Not(found_list.pop(), found_list.pop()))
+
+        print(found_list)
+
+if __name__ == "__main__":
+    SE = SearchEngine()
+    P = Parser()
+    ls = P.get_query_terms(P.transform_query(input("Google it: ")))
+    print(ls, "\n")
+    #print(SE.And(SE.search("bancos"),SE.search("de")))
+    SE.Process(ls)
+    #print(SE.Or(SE.search("react"), SE.search("bootstrap")))
+    #print(SE.String("ir pará"))
