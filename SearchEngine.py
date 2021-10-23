@@ -89,9 +89,9 @@ class SearchEngine:
         urls = set()
         extracts_to_return = {}
         if len(words) == 1:
-            return self.search(words[0])
+            return self.Search(words[0])
         else:
-            search = self.search(words[0])
+            search = self.Search(words[0])
             for i in range(1,len(words)):
                 search = self.And(search,self.Search(words[i]))
             if search == set():
@@ -135,7 +135,7 @@ class SearchEngine:
         for w in search_terms:
             if w not in ["AND", "OR", "-"]:
                 if w.startswith("\""): 
-                    search_results.append(self.String(w))
+                    search_results.append(self.String(w[1:-1]))
                 else:
                     search_results.append(self.Search(w))
             else:
