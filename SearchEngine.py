@@ -146,12 +146,25 @@ class SearchEngine:
                 elif w == "-":
                     search_results.append(self.Not(search_results.pop(), search_results.pop()))
 
-        return search_results
+        return search_results[0]
 
     # metodo a ser utilizado pela pagina web do buscador
     def PerformSearch(self, query):
         ls = self.parser.parse(query)
-        return self.Process(ls)
+        urls, response, words = self.Process(ls)
+
+        result = {
+            "query": list(words),
+            "response": []
+        }
+        for k,v in response.items():
+            result["response"].append({
+                "url": k,
+                "title": self.title[k],
+                "text": " ".join(v)
+            })
+
+        return result
 
 if __name__ == "__main__":
     SE = SearchEngine()
