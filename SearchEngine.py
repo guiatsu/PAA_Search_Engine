@@ -139,12 +139,14 @@ class SearchEngine:
                 else:
                     search_results.append(self.Search(w))
             else:
+                i1 = search_results.pop()
+                i2 = search_results.pop()
                 if w == "AND":
-                    search_results.append(self.And(search_results.pop(), search_results.pop()))
+                    search_results.append(self.And(i2, i1))
                 elif w == "OR":
-                    search_results.append(self.Or(search_results.pop(), search_results.pop()))
+                    search_results.append(self.Or(i2, i1))
                 elif w == "-":
-                    search_results.append(self.Not(search_results.pop(), search_results.pop()))
+                    search_results.append(self.Not(i2, i1))
 
         return search_results[0]
 
@@ -173,6 +175,9 @@ if __name__ == "__main__":
     # print(SE.And(SE.Search("lucero"),SE.Search("jorge")), end="\n\n")
     # print(SE.Or(SE.Search("lucero"),SE.Search("jorge")), end="\n\n")
     # print(SE.Not(SE.Search("lucero"),SE.Search("jorge")), end="\n\n")
+    #ls = SE.parser.parse("lucero -ausdgshasudi")
+    #print(ls)
+    #print(SE.Process(ls))
     # print(SE.String("jorge lucero"), end="\n\n")
     # print(SE.String("lucero jorge"), end="\n\n")
     # print(SE.String("ughsdughsa"))
