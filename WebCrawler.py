@@ -11,7 +11,10 @@ class WebCrawler(scrapy.Spider):
     def start_requests(self):
         # start_urls = ['http://maratona.sbc.org.br/']
         # start_urls = ['https://www.youtube.com/']
-        start_urls = ['https://www.unb.br/']
+        # start_urls = ['https://www.unb.br/']
+        start_urls = ['https://cic.unb.br/']
+        
+
 
         for i in start_urls:
             yield Request(i, self.parse) 
@@ -29,19 +32,19 @@ class WebCrawler(scrapy.Spider):
         if page == "":
             page = response.url.split("/")[-2]
 
-        page_elements = response.css("body :not(script)::text, img::attr(alt)").getall()
+        page_elements = response.css("body :not(script):not(style)::text, img::attr(alt)").getall()
         text_lines = []
         text_lines_no_stop_word = []
         stop_words = set(get_stop_words())
 
         for i in page_elements:
-            line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ ]","",i.strip())
+            line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ\s]","",i.strip())
             line = re.sub("\t"," ",line)
-            line = re.sub("\s{2,}","",line)
+            line = re.sub("\s+"," ",line)
             line = line.strip()
             if(line != ""):
-                aux_map = line.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
-                                         'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
+                # aux_map = line.maketrans('¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ',
+                #                          'SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy')
                 text_lines.append(line.split(" "))
                 # text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words and len(x) > 1])
                 # text_lines_no_stop_word.append([x for x in line.split(" ") if x.lower().translate(aux_map) not in stop_words and len(x) > 1])
@@ -54,6 +57,7 @@ class WebCrawler(scrapy.Spider):
                     data[j] = {
                         "pages" : {
                             response.url : {
+                                "title" : response.css("title::text").get(),
                                 "occurrences" : 1,
                                 "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                             },
@@ -62,6 +66,7 @@ class WebCrawler(scrapy.Spider):
                 else:
                     if data[j]["pages"].get(response.url) == None:
                         data[j]["pages"][response.url] = {
+                            "title" : response.css("title::text").get(),
                             "occurrences": 1,
                             "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
                         }
