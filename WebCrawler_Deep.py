@@ -1,10 +1,6 @@
-import scrapy
-from scrapy import Request
 from scrapy.crawler import CrawlerProcess
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.spidermiddlewares.depth import DepthMiddleware
-from File import *
 import json
 import re
 
@@ -19,7 +15,11 @@ class WebCrawler(CrawlSpider):
 
     start_urls = ["https://cic.unb.br/"]
 
-
+    def remove_accents(self, string):
+        aux_map = string.maketrans("¿¿¿¿¿ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ",
+                                  "SZszYACEIOUAEIOUAEIOUAOEUIONYaaceiouaeiouaeiouaoeuionyy")
+        string = string.translate(aux_map)
+        return string
 
     def parse_item(self,response):
         page = response.url.split("/")[-1]
@@ -29,7 +29,6 @@ class WebCrawler(CrawlSpider):
         page_elements = response.css("body :not(script):not(style)::text, img::attr(alt)").getall()
         text_lines = []
         text_lines_no_stop_word = []
-        stop_words = set(get_stop_words())
 
         for i in page_elements:
             line = re.sub("[^A-Za-z0-9-ÁÇÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕËÜÏÖÑÝåáçéíóúàèìòùâêîôûãõëüïöñýÿ\s]","",i.strip())
@@ -42,14 +41,14 @@ class WebCrawler(CrawlSpider):
         
         for i in range(len(text_lines_no_stop_word)):
             for j in text_lines_no_stop_word[i]:
-                j = j.lower()
+                j = self.remove_accents(j.lower())
                 if data.get(j) == None:
                     data[j] = {
                         "pages" : {
                             response.url : {
                                 "title" : response.css("title::text").get(),
                                 "occurrences" : 1,
-                                "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
+                                "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if self.remove_accents(word.lower()) == j])],
                             },
                         },
                     }
@@ -58,13 +57,13 @@ class WebCrawler(CrawlSpider):
                         data[j]["pages"][response.url] = {
                             "title" : response.css("title::text").get(),
                             "occurrences": 1,
-                            "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j])],
+                            "extracts" : [(" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if self.remove_accents(word.lower()) == j])],
                         }
                     else:
                         aux = data[j]["pages"][response.url]
                         aux["occurrences"] = aux["occurrences"] + 1
                         extracts = aux["extracts"]
-                        extracts.append((" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if word.lower() == j]))
+                        extracts.append((" ".join(text_lines[i]),[i for i,word in enumerate(text_lines[i]) if self.remove_accents(word.lower()) == j]))
                         aux["extracts"] = extracts
                         data[j]["pages"][response.url] = aux
 

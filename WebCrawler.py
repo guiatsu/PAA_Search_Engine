@@ -23,7 +23,6 @@ class WebCrawler(scrapy.Spider):
 
     def parse(self,response):
         links = response.css("a")
-        teste = response.css("a::attr(href)").getall()
         self.parse_page(response)
         yield from response.follow_all(links, self.parse_page)
 
