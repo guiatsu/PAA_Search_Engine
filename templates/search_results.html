@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+    
+    <head>
+        <meta charset="UTF-8">
+        <title>Projeto de PAA</title>
+    </head>
+
+    <body>
+        <div class="container">
+            <div style="display: flex; flex-direction: row;">
+                {% for message in get_flashed_messages()%}
+                <p>Resultados da busca por: &nbsp;</p>
+                <p> </p> 
+                <p class="searched-text">{{message}}</p>
+            {% endfor %}
+            </div>
+            <ul class="results_container">
+                {% for item in data %}
+                    <li class="result">
+                        <a href={{item.url}} class="field url">
+                            {{item.url}}
+                        </a>
+                        <a style="font-weight: 600;" class="field" href={{item.url}}>
+                            {{item.title}}
+                        </a>
+                        <span class="field">{{item.extract}}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </body>
+
+    <style>
+        html, body {
+            height: 100%;
+            padding: 20px 0px;
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            /* justify-content: center; */
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .searched-text {
+            font-weight: bold;
+        }
+
+        .results_container {
+            /* background-color: gainsboro; */
+            width: 50%;
+            margin: 20px 0;
+            overflow-wrap: break-word;
+        }
+
+        .result {
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid gainsboro;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;    
+            justify-content: space-evenly;
+        }
+
+        .field {
+            margin: 5px 0;
+        }
+
+        .url {
+            font-size: smaller;
+            text-decoration: none;
+            color: black;
+        }
+    </style>
+
+
+</html>
